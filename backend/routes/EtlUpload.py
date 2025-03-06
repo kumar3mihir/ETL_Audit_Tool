@@ -280,7 +280,8 @@ def split_large_script(script, chunk_size=50000):
 # Configure Nvidia API
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
-    api_key=os.getenv("apikey_nvidia")
+    # api_key=os.getenv("apikey_nvidia")
+   api_key=""
 )
 
 
@@ -407,246 +408,7 @@ def analyze_etl_script(script_content, additional_questions=None):
         return {"error": str(e) + "\n\nPlease check the input and try again."}
 
 
-#modified2
-# def analyze_etl_script(script_content, additional_questions=None):
-#     """Sends the cleaned script to GenAI for audit analysis."""
-    
-#     print("Entering analyze_etl_script() function...")
-#     print(f"Script Content (first 100 chars): {script_content[:100]}")
 
-#     prompt = f"""
-#     You are an ETL audit expert. Analyze the following ETL script for compliance.
-    
-#     Ignore comments and documentation. Only check executable code.
-    
-#     {script_content}
-    
-#     Check for:
-#     1. Auditability (Start/End timestamps, row counts, logs)
-#     2. Reconcilability (Data movement checks, transformations)
-#     3. Restartability (Resumes from failure?)
-#     4. Exception Handling (Errors, alerts)
-
-#     For each category, return:
-#     - YES (Implemented)
-#     - NO (Missing)
-#     - PARTIAL (Incomplete)
-
-#     Additionally, check:
-#     - Does the script only contain comments/readme, without actual logic? [Yes/No]
-#     - Is the executable code properly following best practices? [Yes/No]
-
-#     Provide structured results with code evidence -- Structured JSON Output(must so that i can take it as output):
-#     At the end, provide a structured JSON result following in this format so that i can extract the output easily including the additional questions if any present :
-    
-#     ```structured-results
-#     {{
-#       "Auditability": {{"result": "YES/NO", "evidence": "Reasoning..."}},
-#       "Reconcilability": {{"result": "YES/NO", "evidence": "Reasoning..."}},
-#       "Restartability": {{"result": "YES/NO", "evidence": "Reasoning..."}},
-#       "Exception Handling": {{"result": "PARTIAL/YES/NO", "evidence": "Reasoning..."}},
-#       "Script Contains Only Comments/Readme": {{"result": "YES/NO", "evidence": "Reasoning..."}},
-#       "Follows Best Practices": {{"result": "YES/NO", "evidence": "Reasoning..."}}
-#     }}
-#     ```
-    
-#     """
-
-#     if additional_questions:
-#         prompt += f"\n\nAdditionally, answer the following questions:\n{additional_questions}"
-
-#     print("Generated Prompt:")
-#     print(prompt[:300])  # Print only the first 300 characters for debugging
-
-#     try:
-#         completion = call_genai_api(prompt)  # Call API with retry logic
-#         print("Received response from GenAI model.")
-
-#         audit_report = ""
-#         for chunk in completion:
-#             if chunk.choices[0].delta.content is not None:
-#                 print(chunk.choices[0].delta.content, end="")
-#                 audit_report += chunk.choices[0].delta.content
-                
-#         # Clean up the response to remove AI explanations
-#         if "Audit Report:" in audit_report:
-#             filtered_response = audit_report.split("Audit Report:")[-1].strip()
-#         else:
-#             filtered_response = audit_report.strip()
-
-#         if "Final Assessment:" in filtered_response:
-#             audit_report = filtered_response.split("Final Assessment:")[0].strip()
-#         else:
-#             audit_report = filtered_response  # If "Final Assessment" is missing, keep full report
-
-#         print("\nAudit report successfully generated.")
-#         return audit_report
-
-#     except Exception as e:
-#         print("ERROR OCCURRED in analyze_etl_script:", str(e))
-#         return {"error": str(e) + "\n\nPlease check the input and try again."}
-    
-#code1
-# def analyze_etl_script(script_content, additional_questions=None):
-#     """Sends the cleaned script to GenAI for audit analysis."""
-    
-#     print("Entering analyze_etl_script() function...")
-#     print(f"Script Content (first 100 chars): {script_content[:100]}")
-
-#     prompt = f"""
-#     You are an ETL audit expert. Analyze the following ETL script for compliance.
-    
-#     Ignore comments and documentation. Only check executable code.
-    
-#     {script_content}
-    
-#     Check for:
-#     1. Auditability (Start/End timestamps, row counts, logs)
-#     2. Reconcilability (Data movement checks, transformations)
-#     3. Restartability (Resumes from failure?)
-#     4. Exception Handling (Errors, alerts)
-
-#     For each category, return:
-#     - YES (Implemented)
-#     - NO (Missing)
-#     - PARTIAL (Incomplete)
-
-#     Additionally, check:
-#     - Does the script only contain comments/readme, without actual logic? [Yes/No]
-#     - Is the executable code properly following best practices? [Yes/No]
-
-#     Provide structured results with code evidence.
-#     """
-
-#     if additional_questions:
-#         prompt += f"\n\nAdditionally, answer the following questions:\n{additional_questions}"
-
-#     print("Generated Prompt:")
-#     print(prompt[:300])  # Print only the first 300 characters for debugging
-
-#     print("About to enter try block...")
-#     try:
-#         print("Inside try block...")
-#         completion = client.chat.completions.create(
-#             model="deepseek-ai/deepseek-r1",
-#             messages=[{"role": "user", "content": prompt}],
-#             temperature=0.3,
-#             top_p=0.5,
-#             max_tokens=4096,
-#             stop=["Let's analyze", "Starting with"], 
-#             stream=True
-#         )
-#         print("Received response from GenAI model.")
-
-#         audit_report = ""
-#         for chunk in completion:
-#             if chunk.choices[0].delta.content is not None:
-#                 print(chunk.choices[0].delta.content, end="")
-#                 audit_report += chunk.choices[0].delta.content
-                
-#         # Clean up the response to remove AI explanations
-#         if "Audit Report:" in audit_report:
-#             filtered_response = audit_report.split("Audit Report:")[-1].strip()
-#         else:
-#             filtered_response = audit_report.strip()
-
-#         if "Final Assessment:" in filtered_response:
-#             audit_report = filtered_response.split("Final Assessment:")[0].strip()
-#         else:
-#             audit_report = filtered_response  # If "Final Assessment" is missing, keep full report
-
-#         print("\nAudit report successfully generated.")
-#         return audit_report
-
-#     except Exception as e:
-#         print("ERROR OCCURRED in analyze_etl_script:", str(e))
-#         return {"error": str(e) + "\n\nPlease check the input and try again."}
-
-
-
-# this was woking fine
-# def analyze_etl_script(script_content, script_type, additional_questions=None):
-#     print("Entering analyze_etl_script() function...")
-#     print(f"Script Type: {script_type}")
-#     print(f"Script Content (first 100 chars): {script_content[:100]}")
-    
-#     prompt = f"""
-#     You are an ETL audit expert. Analyze the following ETL script for compliance and generate a structured checklist-based report.
-
-
-#     {script_content}
-
-# **DO NOT explain your thought process.** 
-# **ONLY provide the checklist below in your response:**  
-    
-#    **Audit Report:**
-# - **Auditability**:
-#   - Start/End timestamps present: [Yes/No]
-#   - Row count validation: [Yes/No]
-#   - Logging for each step: [Yes/No]
-
-# - **Reconcilability**:
-#   - Data movement tracking: [Yes/No]
-#   - Transformation validation: [Yes/No]
-
-# - **Restartability**:
-#   - Checkpoints implemented: [Yes/No]
-#   - Resume from failure supported: [Yes/No]
-
-# - **Exception Handling**:
-#   - Error handling implemented: [Yes/No]
-#   - Alerts/Notifications configured: [Yes/No]
-
-# - **Final Assessment**: [Pass/Fail]  
-# - **Recommendations**:  
-#   - [Provide 1-2 short, actionable recommendations]
-# """
-
-#     if additional_questions:
-#         prompt += f"\n\nAdditionally, answer the following questions:\n{additional_questions}"
-
-#     print("Generated Prompt:")
-#     print(prompt[:300])  # Print only the first 300 characters for debugging
-
-#     print("About to enter try block...")
-#     try:
-#         print("Inside try block...")
-#         completion = client.chat.completions.create(
-#             model="deepseek-ai/deepseek-r1",
-#             messages=[{"role": "user", "content": prompt}],
-#             temperature=0.3,
-#             top_p=0.5,
-#             max_tokens=4096,
-#             stop=["Let's analyze", "Starting with"], 
-#             stream=True
-#         )
-#         print("Received response from GenAI model.")
-
-#         audit_report = ""
-#         for chunk in completion:
-#             if chunk.choices[0].delta.content is not None:
-#                 print(chunk.choices[0].delta.content, end="")
-#                 audit_report += chunk.choices[0].delta.content
-                
-                
-                
-#         # Clean up the response to remove AI explanations
-#         if "Audit Report:" in audit_report:
-#          filtered_response = audit_report.split("Audit Report:")[-1].strip()
-#         else:
-#          filtered_response = audit_report.strip()
-
-#         if "Final Assessment:" in filtered_response:
-#          audit_report = filtered_response.split("Final Assessment:")[0].strip()
-#         else:
-#          audit_report = filtered_response  # If "Final Assessment" is missing, keep full report
-
-#         print("\nAudit report successfully generated.")
-#         return audit_report
-
-#     except Exception as e:
-#         print("ERROR OCCURRED in analyze_etl_script:", str(e))
-#         return {"error": str(e) + "\n\nPlease check the input and try again."}
 
 
 
@@ -684,86 +446,10 @@ def upload_file():
     }), 200
 
 
-# this was working fine
-# @etl_upload_bp.route("/upload", methods=["POST"])
-# def upload_file():
-#     """Handles file upload and extracts all files from a ZIP into a unique folder."""
-    
-#     file = request.files["file"]
-    
-#     if not file:
-#         return jsonify({"error": "No file provided"}), 400
-    
-#     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-#     file.save(file_path)  # Save the uploaded file
-
-#     extracted_files = []  # List to store paths of extracted files
-
-#     # If the file is a ZIP, extract it into a unique folder
-#     if file.filename.endswith(".zip"):
-#         unique_folder = os.path.join(UPLOAD_FOLDER, str(uuid.uuid4()))  # Create unique folder
-#         os.makedirs(unique_folder, exist_ok=True)
-        
-#         with zipfile.ZipFile(file_path, "r") as zip_ref:
-#             zip_ref.extractall(unique_folder)  # Extract ZIP into the unique folder
-        
-#         extracted_files = [os.path.join(unique_folder, f) for f in os.listdir(unique_folder)]
-
-#         if not extracted_files:
-#             return jsonify({"error": "ZIP extracted but contains no files"}), 400
-        
-#         return jsonify({"message": "ZIP extracted successfully.", "latest_files": extracted_files}), 200
-
-#     # If not a ZIP, return a single file in a list
-#     return jsonify({"message": f"File {file.filename} uploaded successfully.", "latest_files": [file_path]}), 200
-
-
-
-# @etl_upload_bp.route("/audit", methods=["POST"])
-# def audit_etl():
-#     """Handles the ETL audit for uploaded files. If multiple files are present, it treats them as a single ETL script."""
-#     data = request.json
-#     latest_files = data.get("latest_files", [])
-
-#     if not latest_files:
-#         return jsonify({"error": "No files provided for audit"}), 400
-
-#     if len(latest_files) == 1:
-#         # Single file audit
-#         file_path = latest_files[0]
-#         if not os.path.exists(file_path):
-#             return jsonify({"error": f"File {file_path} not found"}), 404
-
-#         file_extension = file_path.split('.')[-1].lower()
-#         report = process_file(file_path, file_extension)
-#         return jsonify({"audit_report": report}), 200
-#     else:
-#         # Multiple files audit
-#         combined_script_content = ""
-#         for file_path in latest_files:
-#             if not os.path.exists(file_path):
-#                 continue  # Skip missing files instead of failing
-
-#             try:
-#                 with open(file_path, "r", encoding="utf-8") as f:
-#                     combined_script_content += f"\n### File: {file_path}\n" + f.read() + "\n"
-#             except Exception as e:
-#                 continue  # Skip problematic files instead of returning an error
-
-#         if not combined_script_content.strip():
-#             return jsonify({"error": "No valid files to process"}), 400
-
-#         # Analyze combined content
-#         summary_report = analyze_etl_script(combined_script_content, "combined")
-
-#         return jsonify({"summary_audit_report": summary_report}), 200
-
 
 #Modified code 4 -- getting strucutred json output
 
 audit_results_cache = {}
-
-#Modified code 3 -- getting strucutred json output
 @etl_upload_bp.route("/audit", methods=["POST"])
 def audit_etl():
     """Handles ETL audit for uploaded files and returns structured JSON output."""
@@ -811,8 +497,6 @@ def audit_etl():
         
         full_report.append(audit_result)  # Append structured JSON
 
-    # audit_results_cache["latest"] = full_report
-    
     # Merge multiple JSON results
     final_report = {
         "Auditability": {"result": [], "evidence": []},
@@ -821,31 +505,33 @@ def audit_etl():
         "Exception Handling": {"result": [], "evidence": []},
         "Script Contains Only Comments/Readme": {"result": [], "evidence": []},
         "Follows Best Practices": {"result": [], "evidence": []},
-        "Additional Questions": {}  # Placeholder for additional questions
+        "Additional Questions": {}  # Stores questions as key-value pairs (No result/evidence structure)
     }
 
     for report in full_report:
-        for key in final_report.keys():
-            if key in report:
-                final_report[key]["result"].append(report[key]["result"])
-                final_report[key]["evidence"].append(report[key]["evidence"])
+        for key in report:
+            if key == "Additional Questions":
+                final_report[key].update(report[key])  # Directly store key-value answers
+            elif key in final_report:
+                final_report[key]["result"].append(report[key].get("result", "N/A"))
+                final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
+            else:
+                print(f"⚠️ Warning: Unexpected key '{key}' in report.")
 
-        # Merge additional questions
-        if "Additional Questions" in report:
-            final_report["Additional Questions"].update(report["Additional Questions"])
-    print("final_report", final_report)
+    print("✅ Final Report:", final_report)
     audit_results_cache["final"] = final_report  
+
     return jsonify({"structured_audit_report": final_report}), 200
 
 
-# modified code 2 -- can do but we difficut to get the structure json output
-# audit_results_cache = {} 
+# #Modified code 3 -- getting strucutred json output
 # @etl_upload_bp.route("/audit", methods=["POST"])
 # def audit_etl():
-#     """Handles ETL audit for uploaded files."""
+#     """Handles ETL audit for uploaded files and returns structured JSON output."""
 #     data = request.json
 #     latest_files = data.get("latest_files", [])
 #     test_mode = data.get("test_mode", False)
+#     additional_questions = data.get("additional_questions", None)  # Capture additional questions
 
 #     if not latest_files:
 #         print("[ERROR] No files provided for audit.")
@@ -858,11 +544,10 @@ def audit_etl():
 #             print(f"[WARNING] Skipping missing file: {file_path}")
 #             continue
 
-#         script_type = detect_script_type(file_path)
 #         script_content = read_file_content(file_path)
 
 #         if script_content:
-#             combined_script_content += f"\n### File: {file_path} (Type: {script_type}) ###\n{script_content}\n"
+#             combined_script_content += f"\n### File: {file_path} ###\n{script_content}\n"
 
 #     if not combined_script_content.strip():
 #         print("[ERROR] No valid files to process.")
@@ -879,136 +564,41 @@ def audit_etl():
 #     full_report = []
     
 #     for chunk in script_chunks:
-#         audit_report = analyze_etl_script(chunk)
+#         audit_result = analyze_etl_script(chunk, additional_questions)
         
-#         if isinstance(audit_report, dict) and "error" in audit_report:
-#             print("[ERROR] API call failed:", audit_report["error"])
+#         if "error" in audit_result:
+#             print("[ERROR] API call failed:", audit_result["error"])
 #             return jsonify({"error": "Failed to analyze script"}), 500
         
-#         full_report.append(audit_report)
-#         audit_results_cache["latest"] = full_report
-#         # print("before Dowloading report testing audit _results_cache", audit_results_cache)
-#         # audit_results_cache.clear()
-#     return jsonify({"summary_audit_report": "\n\n".join(full_report)}), 200
+#         full_report.append(audit_result)  # Append structured JSON
 
-
-
-# modified code to handle multiple files and any file type
-# @etl_upload_bp.route("/audit", methods=["POST"])
-# def audit_etl():
-#     """Handles ETL audit for uploaded files."""
-#     data = request.json
-#     latest_files = data.get("latest_files", [])
-
-#     if not latest_files:
-#         print("[ERROR] No files provided for audit.")
-#         return jsonify({"error": "No files provided for audit"}), 400
-
-#     # Process Single File
-#     if len(latest_files) == 1:
-#         file_path = latest_files[0]
-#         if not os.path.exists(file_path):
-#             print(f"[ERROR] File not found: {file_path}")
-#             return jsonify({"error": f"File {file_path} not found"}), 404
-
-#         script_type = detect_script_type(file_path)
-#         script_content = read_file_content(file_path)
-
-#         # Add a script type identifier at the top
-#         formatted_script = f"# Script Type: {script_type}\n\n{script_content}"
-#         report = analyze_etl_script(formatted_script)
-#         return jsonify({"audit_report": report}), 200
+#     # audit_results_cache["latest"] = full_report
     
-#     # Process Multiple Files (Merge with Script Type Headers)
-#     combined_script_content = ""
-#     for file_path in latest_files:
-#         if not os.path.exists(file_path):
-#             print(f"[WARNING] Skipping missing file: {file_path}")
-#             continue
+#     # Merge multiple JSON results
+#     final_report = {
+#         "Auditability": {"result": [], "evidence": []},
+#         "Reconcilability": {"result": [], "evidence": []},
+#         "Restartability": {"result": [], "evidence": []},
+#         "Exception Handling": {"result": [], "evidence": []},
+#         "Script Contains Only Comments/Readme": {"result": [], "evidence": []},
+#         "Follows Best Practices": {"result": [], "evidence": []},
+#         "Additional Questions": {}  # Placeholder for additional questions
+#     }
 
-#         script_type = detect_script_type(file_path)
-#         script_content = read_file_content(file_path)
+#     for report in full_report:
+#         for key in final_report.keys():
+#             if key in report:
+#                 final_report[key]["result"].append(report[key]["result"])
+#                 final_report[key]["evidence"].append(report[key]["evidence"])
 
-#         if script_content:
-#             combined_script_content += f"\n### File: {file_path} (Type: {script_type}) ###\n{script_content}\n"
-
-#     if not combined_script_content.strip():
-#         print("[ERROR] No valid files to process.")
-#         return jsonify({"error": "No valid files to process"}), 400
-
-#     summary_report = analyze_etl_script(combined_script_content)
-#     return jsonify({"summary_audit_report": summary_report}), 200
-
-
-
-
-
-
+#         # Merge additional questions
+#         if "Additional Questions" in report:
+#             final_report["Additional Questions"].update(report["Additional Questions"])
+#     print("final_report", final_report)
+#     audit_results_cache["final"] = final_report  
+#     return jsonify({"structured_audit_report": final_report}), 200
 
 
-# # # this was working fine for single file
-# @etl_upload_bp.route("/audit", methods=["POST"])
-# def audit_etl():
-#     """Handles the ETL audit for uploaded files. If multiple files are present, it treats them as a single ETL script."""
-#     data = request.json
-#     latest_files = data.get("latest_files", [])
-
-#     if not latest_files:
-#         print("No files provided for audit.")
-#         return jsonify({"error": "No files provided for audit"}), 400
-
-#     if len(latest_files) == 1:
-#         # Single file audit
-#         file_path = latest_files[0]
-#         print(f"Processing single file: {file_path}")
-
-#         if not os.path.exists(file_path):
-#             print(f"File {file_path} not found")
-#             return jsonify({"error": f"File {file_path} not found"}), 404
-
-#         file_extension = file_path.split('.')[-1].lower()
-#         print(f"File extension: {file_extension}")
-#         print("Calling process_file() function...")
-
-#         report = process_file(file_path, file_extension)
-#         with open(file_path, 'r') as f:
-#             file_content = f.read()
-#         print(f"File content (up to 100 words): {' '.join(file_content.split()[:100])}")
-#         # print(report)
-#         print("Returning audit report for single file.")
-#         print(f"Audit report: {report}")
-#         return jsonify({"audit_report": report}), 200
-         
-#     else:
-#         # Multiple files audit
-#         print("Processing multiple files...")
-#         combined_script_content = ""
-
-#         for file_path in latest_files:
-#             if not os.path.exists(file_path):
-#                 print(f"Skipping missing file: {file_path}")
-#                 continue  # Skip missing files
-
-#             try:
-#                 print(f"Reading: {file_path}")
-#                 with open(file_path, "r", encoding="utf-8") as f:
-#                     combined_script_content += f"\n### File: {file_path}\n" + f.read() + "\n"
-#                     print(f"File content (up to 100 words): {' '.join(combined_script_content.split()[:100])}")
-#             except Exception as e:
-#                 print(f"Error reading {file_path}: {str(e)}")
-#                 continue  # Skip problematic files
-
-#         if not combined_script_content.strip():
-#             print("No valid files to process.")
-#             return jsonify({"error": "No valid files to process"}), 400
-
-#         print("Combining all scripts into one ETL script.")
-#         print("Calling analyze_etl_script() function...")
-
-#         summary_report = analyze_etl_script(combined_script_content, "combined")
-#         print("Returning summary audit report.")
-
-#         return jsonify({"summary_audit_report": summary_report}), 200
 
 
 def generate_csv_report(audit_results, output_path):
