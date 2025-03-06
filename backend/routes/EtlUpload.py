@@ -7,7 +7,7 @@ from flask import Blueprint
 from openai import OpenAI
 import json
 import uuid
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 import zipfile
 import xml.etree.ElementTree as ET
 from werkzeug.utils import secure_filename  # Import secure_filename
@@ -24,13 +24,7 @@ from datetime import datetime
 
 # Define the blueprint
 etl_upload_bp = Blueprint("etl_upload", __name__)
-# load_dotenv()
-# Configure OpenRouter API
-# client = OpenAI(
-#     # base_url="https://openrouter.ai/api/v1"
-#     base_url="https://integrate.api.nvidia.com/v1",
-#     api_key=os.getenv("apikey_nvidia")
-# )
+load_dotenv()
 
 UPLOAD_FOLDER = "uploads"
 EXTRACTED_FOLDER = "extracted_files"
@@ -280,17 +274,13 @@ def split_large_script(script, chunk_size=50000):
     """Splits a large script into smaller chunks to avoid API input limits."""
     return [script[i:i+chunk_size] for i in range(0, len(script), chunk_size)]
 
-# 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
-# meta/llama-3.2-3b-instruct
-# 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
-# deepseek-ai/deepseek-r1 new
-# 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
-#new mata
-# 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
 
+
+
+# Configure Nvidia API
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
-    api_key="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"
+    api_key=os.getenv("apikey_nvidia")
 )
 
 
@@ -772,6 +762,8 @@ def upload_file():
 #Modified code 4 -- getting strucutred json output
 
 audit_results_cache = {}
+
+#Modified code 3 -- getting strucutred json output
 @etl_upload_bp.route("/audit", methods=["POST"])
 def audit_etl():
     """Handles ETL audit for uploaded files and returns structured JSON output."""
@@ -819,6 +811,8 @@ def audit_etl():
         
         full_report.append(audit_result)  # Append structured JSON
 
+    # audit_results_cache["latest"] = full_report
+    
     # Merge multiple JSON results
     final_report = {
         "Auditability": {"result": [], "evidence": []},
@@ -832,95 +826,16 @@ def audit_etl():
 
     for report in full_report:
         for key in final_report.keys():
-            if key == "Additional Questions":
-                if key in report:
-                    final_report[key].update(report[key])  # Merge additional questions
-            else:
-                if key in report:
-                    final_report[key]["result"].append(report[key].get("result", "N/A"))
-                    final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
-                else:
-                    print(f"⚠️ Warning: Missing key '{key}' in report.")
+            if key in report:
+                final_report[key]["result"].append(report[key]["result"])
+                final_report[key]["evidence"].append(report[key]["evidence"])
 
-    print("✅ Final Report:", final_report)
+        # Merge additional questions
+        if "Additional Questions" in report:
+            final_report["Additional Questions"].update(report["Additional Questions"])
+    print("final_report", final_report)
     audit_results_cache["final"] = final_report  
-
     return jsonify({"structured_audit_report": final_report}), 200
-
-
-#Modified code 3 -- getting strucutred json output
-# @etl_upload_bp.route("/audit", methods=["POST"])
-# def audit_etl():
-#     """Handles ETL audit for uploaded files and returns structured JSON output."""
-#     data = request.json
-#     latest_files = data.get("latest_files", [])
-#     test_mode = data.get("test_mode", False)
-#     additional_questions = data.get("additional_questions", None)  # Capture additional questions
-
-#     if not latest_files:
-#         print("[ERROR] No files provided for audit.")
-#         return jsonify({"error": "No files provided for audit"}), 400
-
-#     combined_script_content = ""
-    
-#     for file_path in latest_files:
-#         if not os.path.exists(file_path):
-#             print(f"[WARNING] Skipping missing file: {file_path}")
-#             continue
-
-#         script_content = read_file_content(file_path)
-
-#         if script_content:
-#             combined_script_content += f"\n### File: {file_path} ###\n{script_content}\n"
-
-#     if not combined_script_content.strip():
-#         print("[ERROR] No valid files to process.")
-#         return jsonify({"error": "No valid files to process"}), 400
-
-#     # Split script if too large
-#     script_chunks = split_large_script(combined_script_content)
-
-#     # If test mode is enabled, return a small chunk to check API response
-#     if test_mode:
-#         test_prompt = f"Test this script for ETL compliance:\n\n{script_chunks[0]}"
-#         return jsonify({"test_prompt": test_prompt}), 200
-
-#     full_report = []
-    
-#     for chunk in script_chunks:
-#         audit_result = analyze_etl_script(chunk, additional_questions)
-        
-#         if "error" in audit_result:
-#             print("[ERROR] API call failed:", audit_result["error"])
-#             return jsonify({"error": "Failed to analyze script"}), 500
-        
-#         full_report.append(audit_result)  # Append structured JSON
-
-#     # audit_results_cache["latest"] = full_report
-    
-#     # Merge multiple JSON results
-#     final_report = {
-#         "Auditability": {"result": [], "evidence": []},
-#         "Reconcilability": {"result": [], "evidence": []},
-#         "Restartability": {"result": [], "evidence": []},
-#         "Exception Handling": {"result": [], "evidence": []},
-#         "Script Contains Only Comments/Readme": {"result": [], "evidence": []},
-#         "Follows Best Practices": {"result": [], "evidence": []},
-#         "Additional Questions": {}  # Placeholder for additional questions
-#     }
-
-#     for report in full_report:
-#         for key in final_report.keys():
-#             if key in report:
-#                 final_report[key]["result"].append(report[key]["result"])
-#                 final_report[key]["evidence"].append(report[key]["evidence"])
-
-#         # Merge additional questions
-#         if "Additional Questions" in report:
-#             final_report["Additional Questions"].update(report["Additional Questions"])
-#     print("final_report", final_report)
-#     audit_results_cache["final"] = final_report  
-#     return jsonify({"structured_audit_report": final_report}), 200
 
 
 # modified code 2 -- can do but we difficut to get the structure json output
