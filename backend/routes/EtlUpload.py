@@ -63,6 +63,52 @@ def validate_xml(xml_file):
         return False
 
 
+
+
+# script_types = {
+#     "py": "Python",
+#     "sql": "SQL",
+#     "sh": "Shell",
+#     "yaml": "YAML",
+#     "yml": "YAML",
+#     "json": "JSON",
+#     "csv": "CSV",
+#     "xml": "XML",
+#     "java": "Java",
+#     "ipynb": "Jupyter Notebook",
+#     "bat": "Batch Script",
+#     "ps1": "PowerShell Script",
+#     "pl": "Perl",
+#     "rb": "Ruby",
+#     "php": "PHP",
+#     "r": "R Script",
+#     "scala": "Scala",
+#     "go": "Go",
+#     "c": "C",
+#     "cpp": "C++",
+#     "ts": "TypeScript",
+#     "js": "JavaScript",
+#     "hql": "Hive Query Language",
+#     "pig": "Apache Pig Script",
+#     "bql": "BigQuery SQL",
+#     "spark": "Apache Spark",
+#     "pyspark": "PySpark",
+#     "airflow": "Apache Airflow DAG",
+#     "nifi": "Apache NiFi",
+#     "oozie": "Apache Oozie Workflow",
+#     "dag": "Directed Acyclic Graph (DAG)",
+#     "toml": "TOML Configuration",
+#     "ini": "INI Configuration",
+#     "properties": "Java Properties File",
+#     "cfg": "General Configuration File",
+#     "parquet": "Apache Parquet",
+#     "avro": "Apache Avro",
+#     "orc": "Optimized Row Columnar (ORC)",
+#     "xls": "Excel Spreadsheet",
+#     "xlsx": "Excel Spreadsheet",
+#     "rmd": "R Markdown",
+# }
+
 def detect_script_type(file_path):
     """
     Determines the type of ETL script based on the file extension.
@@ -274,14 +320,14 @@ def split_large_script(script, chunk_size=50000):
     """Splits a large script into smaller chunks to avoid API input limits."""
     return [script[i:i+chunk_size] for i in range(0, len(script), chunk_size)]
 
-
-
-
+# new acc zero usage apikey =  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
+# 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
+# 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
 # Configure Nvidia API
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     # api_key=os.getenv("apikey_nvidia")
-   api_key=""
+   api_key="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"
 )
 
 
@@ -319,21 +365,20 @@ def analyze_etl_script(script_content, additional_questions=None):
     Ignore comments and documentation. Only check executable code.
     
     {script_content}
-    
-    Check for:
-    1. Auditability (Start/End timestamps, row counts, logs)
-    2. Reconcilability (Data movement checks, transformations)
-    3. Restartability (Resumes from failure?)
-    4. Exception Handling (Errors, alerts)
+    **Check for compliance on the following aspects:**
+    1. **Auditability** (Start/End timestamps, row counts, logs)
+    2. **Reconcilability** (Data movement checks, transformations)
+    3. **Restartability** (Resumes from failure?)
+    4. **Exception Handling** (Errors, alerts)
+    5. **Script Contains Only Comments/Readme?** [YES/NO]
+    6. **Follows Best Practices?** [YES/NO]
 
-    For each category, return:
-    - YES (Implemented)
-    - NO (Missing)
-    - PARTIAL (Incomplete)
-
-    Additionally, check:
-    - Does the script only contain comments/readme, without actual logic? [Yes/No]
-    - Is the executable code properly following best practices? [Yes/No]
+    **For each category, return structured JSON with:**
+    - **result** → (YES, NO, PARTIAL)
+    - **evidence** → Provide a **detailed and technical** justification with:
+      - Observations from the script.
+      - Technical improvements needed.
+      - Specific lines or code patterns that should be improved.
     """
 
     # If additional questions are provided, add them
@@ -343,32 +388,31 @@ def analyze_etl_script(script_content, additional_questions=None):
     # Enforce structured JSON format
     prompt += """
     
-    **Provide structured JSON output at the end in this format:**
+    **Provide structured JSON output at the end in this format and in evidence section add all that have given in the response i.e, all the technical terms and area of improvement:**
     'so i am using the below to extract output so be serious about generating this output'
     structured_match = re.search(r"```structured-results\n({.*?})\n```", audit_report, re.DOTALL)
 
     ```structured-results
     {
-      "Auditability": {"result": "YES/NO", "evidence": "Reasoning..."},
-      "Reconcilability": {"result": "YES/NO", "evidence": "Reasoning..."},
-      "Restartability": {"result": "YES/NO", "evidence": "Reasoning..."},
-      "Exception Handling": {"result": "PARTIAL/YES/NO", "evidence": "Reasoning..."},
+      "Auditability": {"result": "YES/NO", "evidence": "Detailed analysis..."},
+      "Reconcilability": {"result": "YES/NO", "evidence": "Detailed analysis..."},
+      "Restartability": {"result": "YES/NO", "evidence": "Detailed analysis..."},
+      "Exception Handling": {"result": "PARTIAL/YES/NO", "evidence": "Detailed analysis..."},
       "Script Contains Only Comments/Readme": {"result": "YES/NO", "evidence": "Reasoning..."},
-      "Follows Best Practices": {"result": "YES/NO", "evidence": "Reasoning..."}
+      "Follows Best Practices": {"result": "YES/NO", "evidence": "Detailed analysis..."}
     }
     ```
     
-    If additional questions were asked, include them in the structured JSON under `"Additional Questions"`, e.g.:
-    
+     **If additional questions were asked, format them as follows (otherwise, do not include this section):**
     ```structured-results
     {
       ...
-      "Additional Questions": {
-        "question1": "Answer...",
-        "question2": "Answer..."
-      }
+     "Additional Questions":{
+         "Your question here": {"result": "YES/NO", "evidence": "Detailed analysis..."},
+         } 
     }
     ```
+    **DO NOT** include any extra text outside of the JSON output.
     """
 
     print("Generated Prompt:")
@@ -488,12 +532,15 @@ def audit_etl():
 
     full_report = []
     
+    
+    # // we need to sumerise it which code is not implemented till now we can do 
     for chunk in script_chunks:
         audit_result = analyze_etl_script(chunk, additional_questions)
         
         if "error" in audit_result:
             print("[ERROR] API call failed:", audit_result["error"])
             return jsonify({"error": "Failed to analyze script"}), 500
+        
         
         full_report.append(audit_result)  # Append structured JSON
 
@@ -508,15 +555,32 @@ def audit_etl():
         "Additional Questions": {}  # Stores questions as key-value pairs (No result/evidence structure)
     }
 
+    # for report in full_report:
+    #     for key in report:
+    #         if key == "Additional Questions":
+    #             final_report[key].update(report[key])  # Directly store key-value answers
+    #         elif key in final_report:
+    #             final_report[key]["result"].append(report[key].get("result", "N/A"))
+    #             final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
+    #         else:
+    #             print(f"⚠️ Warning: Unexpected key '{key}' in report.")
+    
     for report in full_report:
-        for key in report:
-            if key == "Additional Questions":
-                final_report[key].update(report[key])  # Directly store key-value answers
-            elif key in final_report:
-                final_report[key]["result"].append(report[key].get("result", "N/A"))
-                final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
-            else:
-                print(f"⚠️ Warning: Unexpected key '{key}' in report.")
+      for key in report:
+        if key == "Additional Questions":
+            # Ensure each question follows structured result/evidence format
+            for question, details in report[key].items():
+                if question not in final_report[key]:  # First time seeing this question
+                    final_report[key][question] = {"result": [], "evidence": []}
+                
+                final_report[key][question]["result"].append(details.get("result", "N/A"))
+                final_report[key][question]["evidence"].append(details.get("evidence", "N/A"))
+
+        elif key in final_report:
+            final_report[key]["result"].append(report[key].get("result", "N/A"))
+            final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
+        else:
+            print(f"⚠️ Warning: Unexpected key '{key}' in report.")
 
     print("✅ Final Report:", final_report)
     audit_results_cache["final"] = final_report  

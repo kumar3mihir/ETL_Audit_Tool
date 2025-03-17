@@ -3,6 +3,10 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
+    container: {
+      center: false, // Disable centering
+      padding: '0rem', // Remove default padding
+    },
     extend: {
       fontFamily: {
         sans: ['Inter var', 'sans-serif'],
