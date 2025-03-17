@@ -39,3 +39,10 @@ __pycache__/
 uploads/
 output/
 extracted_files/
+
+
+
+
+#new but not implemented
+src/components/ResultPage/LeftSide/
+src/components/ResultPage/RightSide/
