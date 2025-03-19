@@ -1000,6 +1000,8 @@ def generate_pdf_report(audit_data):
 @etl_upload_bp.route("/download/csv", methods=["GET"])
 def download_csv():
     """Endpoint to download audit results as CSV."""
+    print("📌 Checking Audit Results Cache:", audit_results_cache)  # Debugging print
+
     if "final" not in audit_results_cache:
         return jsonify({"error": "No audit report found"}), 404
 
@@ -1010,6 +1012,8 @@ def download_csv():
 @etl_upload_bp.route("/download/pdf", methods=["GET"])
 def download_pdf():
     """Endpoint to download audit results as PDF."""
+    print("📌 Checking Audit Results Cache:", audit_results_cache)  # Debugging print
+
     if "final" not in audit_results_cache:
         return jsonify({"error": "No audit report found"}), 404
 
