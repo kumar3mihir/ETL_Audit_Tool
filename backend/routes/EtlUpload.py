@@ -352,7 +352,136 @@ def call_genai_api(prompt):
     return completion  # Return API response
 
 
-#New Modified code -- additional question and json output also added
+
+# improved code with : technical improvement section in evidence column
+# def analyze_etl_script(script_content, additional_questions=None):
+#     """Sends the cleaned script to GenAI for audit analysis and extracts structured JSON output."""
+    
+#     print("Entering analyze_etl_script() function...")
+#     print(f"Script Content (first 100 chars): {script_content[:100]}")
+
+#     # Construct the prompt
+#     prompt = f"""
+#     You are an ETL audit expert. Analyze the following ETL script for compliance.
+    
+#     Ignore comments and documentation. Only check executable code.
+    
+#     {script_content}
+
+#     **Check for compliance on the following aspects:**
+#     1. **Auditability** (Start/End timestamps, row counts, logs)
+#     2. **Reconcilability** (Data movement checks, transformations)
+#     3. **Restartability** (Resumes from failure?)
+#     4. **Exception Handling** (Errors, alerts)
+#     5. **Script Contains Only Comments/Readme?** [YES/NO]
+#     6. **Follows Best Practices?** [YES/NO]
+
+#     **For each category, return structured JSON with:**
+#     - **result** → (YES, NO, PARTIAL)
+#     - **evidence** → Provide a **detailed and technical** justification with:
+#       - **General Evidence:** Observations from the script.
+#       - **Technical Improvements:** List what needs improvement.
+
+#     **Ensure structured JSON format like this:**
+#     ```structured-results
+#     {{
+#       "Auditability": {{
+#         "result": "YES/NO/PARTIAL",
+#         "evidence": {{
+#           "General Evidence": "Detailed analysis...",
+#           "Technical Improvements": "List of improvements..."
+#         }}
+#       }},
+#       "Reconcilability": {{
+#         "result": "YES/NO/PARTIAL",
+#         "evidence": {{
+#           "General Evidence": "Detailed analysis...",
+#           "Technical Improvements": "List of improvements..."
+#         }}
+#       }},
+#       "Restartability": {{
+#         "result": "YES/NO/PARTIAL",
+#         "evidence": {{
+#           "General Evidence": "Detailed analysis...",
+#           "Technical Improvements": "List of improvements..."
+#         }}
+#       }},
+#       "Exception Handling": {{
+#         "result": "YES/NO/PARTIAL",
+#         "evidence": {{
+#           "General Evidence": "Detailed analysis...",
+#           "Technical Improvements": "List of improvements..."
+#         }}
+#       }},
+#       "Script Contains Only Comments/Readme": {{
+#         "result": "YES/NO",
+#         "evidence": {{
+#           "General Evidence": "Explain why it is only comments or not.",
+#           "Technical Improvements": "N/A"
+#         }}
+#       }},
+#       "Follows Best Practices": {{
+#         "result": "YES/NO/PARTIAL",
+#         "evidence": {{
+#           "General Evidence": "Detailed analysis...",
+#           "Technical Improvements": "Refactoring, modularization suggestions..."
+#         }}
+#       }}
+#     }}
+#     ```
+    
+#     If additional questions were asked, format them as follows:
+#     ```structured-results
+#     {{
+#       "Additional Questions": {{
+#         "Your question here": {{
+#           "result": "YES/NO",
+#           "evidence": {{
+#             "General Evidence": "Detailed answer...",
+#             "Technical Improvements": "Actionable recommendations..."
+#           }}
+#         }}
+#       }}
+#     }}
+#     ```
+#     **DO NOT** include any extra text outside the JSON.
+#     """
+
+#     print("Generated Prompt:")
+#     print(prompt[:300])  # Debugging - Print first 300 characters
+
+#     try:
+#         completion = call_genai_api(prompt)  # Call API with retry logic
+#         print("Received response from GenAI model.")
+
+#         audit_report = ""
+#         for chunk in completion:
+#             if hasattr(chunk, "choices") and chunk.choices:
+#                 if hasattr(chunk.choices[0], "delta") and hasattr(chunk.choices[0].delta, "content"):
+#                     print(chunk.choices[0].delta.content, end="")
+#                     audit_report += chunk.choices[0].delta.content
+
+#         # Extract structured JSON using regex
+#         structured_match = re.search(r"```structured-results\n({.*?})\n```", audit_report, re.DOTALL)
+
+#         if structured_match:
+#             structured_json_str = structured_match.group(1)
+#             try:
+#                 structured_results = json.loads(structured_json_str)
+#                 return structured_results  # Return structured JSON
+#             except json.JSONDecodeError:
+#                 print("[ERROR] Failed to parse structured JSON.")
+#                 return {"error": "Failed to parse structured JSON."}
+
+#         print("[WARNING] No structured JSON found! Returning full text instead.")
+#         return {"error": "AI did not return structured JSON", "raw_text": audit_report}
+
+#     except Exception as e:
+#         print("ERROR OCCURRED in analyze_etl_script:", str(e))
+#         return {"error": str(e) + "\n\nPlease check the input and try again."}
+
+
+# New Modified code -- additional question and json output also added
 def analyze_etl_script(script_content, additional_questions=None):
     """Sends the cleaned script to GenAI for audit analysis and extracts structured JSON output."""
     
@@ -394,12 +523,27 @@ def analyze_etl_script(script_content, additional_questions=None):
 
     ```structured-results
     {
-      "Auditability": {"result": "YES/NO", "evidence": "Detailed analysis..."},
-      "Reconcilability": {"result": "YES/NO", "evidence": "Detailed analysis..."},
-      "Restartability": {"result": "YES/NO", "evidence": "Detailed analysis..."},
-      "Exception Handling": {"result": "PARTIAL/YES/NO", "evidence": "Detailed analysis..."},
+      "Auditability": {"result": "YES/NO", "evidence": {
+      "Detailed Analysis": "Explain in detail how auditability is implemented.",
+      "Technical Improvements": "**Key improvements needed for better compliance.**"
+    }},
+      "Reconcilability": {"result": "YES/NO", "evidence":{
+      "Detailed Analysis": "Explain in detail how reconciliation is being handled.",
+      "Technical Improvements": "**List improvements needed for better accuracy.**"
+    }},
+      "Restartability": {"result": "YES/NO", "evidence": {
+      "Detailed Analysis": "Explain in detail how the script resumes from failure.",
+      "Technical Improvements": "**Suggest ways to make restartability more robust.**"
+    }},
+      "Exception Handling": {"result": "PARTIAL/YES/NO", "evidence": {
+      "Detailed Analysis": "Explain how errors and exceptions are managed.",
+      "Technical Improvements": "**Suggest improvements for better error handling.**"
+    }},
       "Script Contains Only Comments/Readme": {"result": "YES/NO", "evidence": "Reasoning..."},
-      "Follows Best Practices": {"result": "YES/NO", "evidence": "Detailed analysis..."}
+      "Follows Best Practices": {"result": "YES/NO", "evidence":  {
+      "Detailed Analysis": "Explain in detail if best practices are followed.",
+      "Technical Improvements": "**Recommend coding best practices that should be applied.**"
+    }}
     }
     ```
     
@@ -408,7 +552,10 @@ def analyze_etl_script(script_content, additional_questions=None):
     {
       ...
      "Additional Questions":{
-         "Your question here": {"result": "YES/NO", "evidence": "Detailed analysis..."},
+         "Your question here": {"result": "YES/NO", "evidence": {
+      "Detailed Analysis": "Explain in detail the answer to the question.",
+      "Technical Improvements": "**Recommend what improvement can be done based on cooncept the question is asked**"
+    }},
          } 
     }
     ```
@@ -492,15 +639,15 @@ def upload_file():
 
 
 #Modified code 4 -- getting strucutred json output
-
 audit_results_cache = {}
+
 @etl_upload_bp.route("/audit", methods=["POST"])
 def audit_etl():
     """Handles ETL audit for uploaded files and returns structured JSON output."""
     data = request.json
     latest_files = data.get("latest_files", [])
     test_mode = data.get("test_mode", False)
-    additional_questions = data.get("additional_questions", None)  # Capture additional questions
+    additional_questions = data.get("additional_questions", None)  
 
     if not latest_files:
         print("[ERROR] No files provided for audit.")
@@ -532,8 +679,7 @@ def audit_etl():
 
     full_report = []
     
-    
-    # // we need to sumerise it which code is not implemented till now we can do 
+    # Analyze each script chunk
     for chunk in script_chunks:
         audit_result = analyze_etl_script(chunk, additional_questions)
         
@@ -541,51 +687,164 @@ def audit_etl():
             print("[ERROR] API call failed:", audit_result["error"])
             return jsonify({"error": "Failed to analyze script"}), 500
         
-        
         full_report.append(audit_result)  # Append structured JSON
 
-    # Merge multiple JSON results
+    # Initialize structured report format
     final_report = {
-        "Auditability": {"result": [], "evidence": []},
-        "Reconcilability": {"result": [], "evidence": []},
-        "Restartability": {"result": [], "evidence": []},
-        "Exception Handling": {"result": [], "evidence": []},
-        "Script Contains Only Comments/Readme": {"result": [], "evidence": []},
-        "Follows Best Practices": {"result": [], "evidence": []},
-        "Additional Questions": {}  # Stores questions as key-value pairs (No result/evidence structure)
+        "Auditability": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
+        "Reconcilability": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
+        "Restartability": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
+        "Exception Handling": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
+        "Script Contains Only Comments/Readme": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
+        "Follows Best Practices": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
+        "Additional Questions": {}  
     }
 
-    # for report in full_report:
-    #     for key in report:
-    #         if key == "Additional Questions":
-    #             final_report[key].update(report[key])  # Directly store key-value answers
-    #         elif key in final_report:
-    #             final_report[key]["result"].append(report[key].get("result", "N/A"))
-    #             final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
-    #         else:
-    #             print(f"⚠️ Warning: Unexpected key '{key}' in report.")
-    
+    # Merge results from all script chunks
     for report in full_report:
-      for key in report:
-        if key == "Additional Questions":
-            # Ensure each question follows structured result/evidence format
-            for question, details in report[key].items():
-                if question not in final_report[key]:  # First time seeing this question
-                    final_report[key][question] = {"result": [], "evidence": []}
-                
-                final_report[key][question]["result"].append(details.get("result", "N/A"))
-                final_report[key][question]["evidence"].append(details.get("evidence", "N/A"))
+        for key, value in report.items():
+            if key == "Additional Questions":
+                for question, details in value.items():
+                    if question not in final_report[key]:  
+                        final_report[key][question] = {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}}
 
-        elif key in final_report:
-            final_report[key]["result"].append(report[key].get("result", "N/A"))
-            final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
-        else:
-            print(f"⚠️ Warning: Unexpected key '{key}' in report.")
+                    # Append result
+                    if isinstance(details.get("result"), list):
+                        final_report[key][question]["result"].extend(details["result"])
+                    elif isinstance(details.get("result"), str):
+                        final_report[key][question]["result"].append(details["result"])
 
-    print("✅ Final Report:", final_report)
+                    # Append evidence, ensuring structured format
+                    if isinstance(details.get("evidence"), dict):
+                        final_report[key][question]["evidence"]["Detailed Analysis"] += (
+                            f"\n{details['evidence'].get('Detailed Analysis', '')}".strip()
+                        )
+                        final_report[key][question]["evidence"]["Technical Improvements"] += (
+                            f"\n{details['evidence'].get('Technical Improvements', '')}".strip()
+                        )
+                    elif isinstance(details.get("evidence"), str):
+                        final_report[key][question]["evidence"]["Detailed Analysis"] += f"\n{details['evidence']}"
+
+            elif key in final_report:
+                # Append result
+                if isinstance(value.get("result"), list):
+                    final_report[key]["result"].extend(value["result"])
+                elif isinstance(value.get("result"), str):
+                    final_report[key]["result"].append(value["result"])
+
+                # Append evidence, ensuring structured format
+                if isinstance(value.get("evidence"), dict):
+                    final_report[key]["evidence"]["Detailed Analysis"] += (
+                        f"\n{value['evidence'].get('Detailed Analysis', '')}".strip()
+                    )
+                    final_report[key]["evidence"]["Technical Improvements"] += (
+                        f"\n{value['evidence'].get('Technical Improvements', '')}".strip()
+                    )
+                elif isinstance(value.get("evidence"), str):
+                    final_report[key]["evidence"]["Detailed Analysis"] += f"\n{value['evidence']}"
+            else:
+                print(f"⚠️ Warning: Unexpected key '{key}' in report.")
+
+    # Store final results
     audit_results_cache["final"] = final_report  
+    print("✅ Final Report:", final_report)
 
+    # Return properly formatted JSON response
     return jsonify({"structured_audit_report": final_report}), 200
+
+# audit_results_cache = {}
+# @etl_upload_bp.route("/audit", methods=["POST"])
+# def audit_etl():
+#     """Handles ETL audit for uploaded files and returns structured JSON output."""
+#     data = request.json
+#     latest_files = data.get("latest_files", [])
+#     test_mode = data.get("test_mode", False)
+#     additional_questions = data.get("additional_questions", None)  # Capture additional questions
+
+#     if not latest_files:
+#         print("[ERROR] No files provided for audit.")
+#         return jsonify({"error": "No files provided for audit"}), 400
+
+#     combined_script_content = ""
+    
+#     for file_path in latest_files:
+#         if not os.path.exists(file_path):
+#             print(f"[WARNING] Skipping missing file: {file_path}")
+#             continue
+
+#         script_content = read_file_content(file_path)
+
+#         if script_content:
+#             combined_script_content += f"\n### File: {file_path} ###\n{script_content}\n"
+
+#     if not combined_script_content.strip():
+#         print("[ERROR] No valid files to process.")
+#         return jsonify({"error": "No valid files to process"}), 400
+
+#     # Split script if too large
+#     script_chunks = split_large_script(combined_script_content)
+
+#     # If test mode is enabled, return a small chunk to check API response
+#     if test_mode:
+#         test_prompt = f"Test this script for ETL compliance:\n\n{script_chunks[0]}"
+#         return jsonify({"test_prompt": test_prompt}), 200
+
+#     full_report = []
+    
+    
+#     # // we need to sumerise it which code is not implemented till now we can do 
+#     for chunk in script_chunks:
+#         audit_result = analyze_etl_script(chunk, additional_questions)
+        
+#         if "error" in audit_result:
+#             print("[ERROR] API call failed:", audit_result["error"])
+#             return jsonify({"error": "Failed to analyze script"}), 500
+        
+        
+#         full_report.append(audit_result)  # Append structured JSON
+
+#     # Merge multiple JSON results
+#     final_report = {
+#         "Auditability": {"result": [], "evidence": []},
+#         "Reconcilability": {"result": [], "evidence": []},
+#         "Restartability": {"result": [], "evidence": []},
+#         "Exception Handling": {"result": [], "evidence": []},
+#         "Script Contains Only Comments/Readme": {"result": [], "evidence": []},
+#         "Follows Best Practices": {"result": [], "evidence": []},
+#         "Additional Questions": {}  # Stores questions as key-value pairs (No result/evidence structure)
+#     }
+
+#     # for report in full_report:
+#     #     for key in report:
+#     #         if key == "Additional Questions":
+#     #             final_report[key].update(report[key])  # Directly store key-value answers
+#     #         elif key in final_report:
+#     #             final_report[key]["result"].append(report[key].get("result", "N/A"))
+#     #             final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
+#     #         else:
+#     #             print(f"⚠️ Warning: Unexpected key '{key}' in report.")
+    
+#     for report in full_report:
+#       for key in report:
+#         if key == "Additional Questions":
+#             # Ensure each question follows structured result/evidence format
+#             for question, details in report[key].items():
+#                 if question not in final_report[key]:  # First time seeing this question
+#                     final_report[key][question] = {"result": [], "evidence": []}
+                
+#                 final_report[key][question]["result"].append(details.get("result", "N/A"))
+#                 final_report[key][question]["evidence"].append(details.get("evidence", "N/A"))
+
+#         elif key in final_report:
+#             final_report[key]["result"].append(report[key].get("result", "N/A"))
+#             final_report[key]["evidence"].append(report[key].get("evidence", "N/A"))
+#         else:
+#             print(f"⚠️ Warning: Unexpected key '{key}' in report.")
+
+#     print("✅ Final Report:", final_report)
+#     audit_results_cache["final"] = final_report  
+
+#     return jsonify({"structured_audit_report": final_report}), 200
 
 
 # #Modified code 3 -- getting strucutred json output
@@ -665,77 +924,95 @@ def audit_etl():
 
 
 
-def generate_csv_report(audit_results, output_path):
-    """Generates a well-formatted CSV report for ETL audit results."""
-    
-    try:
-        # Ensure output directory exists
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+import os
+import csv
+from io import BytesIO
+from fpdf import FPDF
+from flask import send_file, jsonify
 
-        with open(output_path, mode="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
+# Directory to store generated reports
+REPORTS_DIR = "reports"
+os.makedirs(REPORTS_DIR, exist_ok=True)
 
-            # **Header Section**
-            writer.writerow(["ETL Audit Report"])
-            writer.writerow(["Timestamp:", audit_results.get("timestamp", "N/A")])
-            writer.writerow(["Audit Done By:", audit_results.get("auditor", "Automated System")])
-            writer.writerow([])  # Empty row for spacing
+def generate_csv_report(audit_data):
+    """Generates a CSV file from audit results and returns the file path."""
+    csv_filename = os.path.join(REPORTS_DIR, "audit_report.csv")
 
-            # **Table Headers**
-            writer.writerow(["Category", "Status", "Key Findings"])
+    with open(csv_filename, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Category", "Result", "Detailed Analysis", "Technical Improvements"])
 
-            # **Handle standard audit fields**
-            standard_categories = [
-                "Auditability", "Reconcilability", "Restartability", 
-                "Exception Handling", "Script Contains Only Comments/Readme", "Follows Best Practices"
-            ]
+        for category, details in audit_data.items():
+            if category == "Additional Questions":
+                for question, q_details in details.items():
+                    evidence = q_details.get("evidence", {})
+                    writer.writerow([
+                        question,
+                        ", ".join(q_details.get("result", ["N/A"])),  # Prevent empty result
+                        evidence.get("Detailed Analysis", "N/A"),
+                        evidence.get("Technical Improvements", "N/A")
+                    ])
+            else:
+                evidence = details.get("evidence", {})
+                writer.writerow([
+                    category,
+                    ", ".join(details.get("result", ["N/A"])),
+                    evidence.get("Detailed Analysis", "N/A"),
+                    evidence.get("Technical Improvements", "N/A")
+                ])
+    return csv_filename
 
-            for category in standard_categories:
-                if category in audit_results:
-                    details = audit_results[category]
-                    status = ", ".join(details.get("result", ["N/A"]))  # Convert list to string
-                    findings = "; ".join(details.get("evidence", ["No evidence provided"]))
-                    writer.writerow([category, status, findings])
+def generate_pdf_report(audit_data):
+    """Generates a PDF file from audit results and returns the file path."""
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(200, 10, "ETL Audit Report", ln=True, align="C")
+    pdf.ln(10)
 
-            # **Handle Additional Questions (if any)**
-            additional_questions = audit_results.get("Additional Questions", {})
-            if additional_questions:
-                writer.writerow([])  # Empty row
-                writer.writerow(["Additional Questions"])
-                for question, response in additional_questions.items():
-                    writer.writerow([question, response])
+    for category, details in audit_data.items():
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 8, f"{category}", ln=True, align="L")
+        pdf.set_font("Arial", "", 10)
 
-        print(f"[INFO] CSV report successfully generated: {output_path}")
+        if category == "Additional Questions":
+            for question, q_details in details.items():
+                evidence = q_details.get("evidence", {})
+                pdf.set_font("Arial", "B", 10)
+                pdf.multi_cell(0, 6, f"🔹 {question}: {', '.join(q_details.get('result', ['N/A']))}")
+                pdf.set_font("Arial", "", 10)
+                pdf.multi_cell(0, 6, f"📌 Detailed Analysis: {evidence.get('Detailed Analysis', 'N/A')}")
+                pdf.multi_cell(0, 6, f"🛠️ Technical Improvements: {evidence.get('Technical Improvements', 'N/A')}")
+                pdf.ln(5)
+        else:
+            evidence = details.get("evidence", {})
+            pdf.multi_cell(0, 6, f"🔹 Result: {', '.join(details.get('result', ['N/A']))}")
+            pdf.multi_cell(0, 6, f"📌 Detailed Analysis: {evidence.get('Detailed Analysis', 'N/A')}")
+            pdf.multi_cell(0, 6, f"🛠️ Technical Improvements: {evidence.get('Technical Improvements', 'N/A')}")
+            pdf.ln(5)
 
-    except Exception as e:
-        print(f"[ERROR] Failed to generate CSV: {str(e)}")
+    pdf_filename = os.path.join(REPORTS_DIR, "audit_report.pdf")
+    pdf.output(pdf_filename)
+    return pdf_filename
 
-
-
-
-@etl_upload_bp.route("/download_csv", methods=["GET"])
-def download_cached_csv():
-    """Downloads the last audit CSV report with a unique timestamp in the filename."""
+# ✅ CSV Download API
+@etl_upload_bp.route("/download/csv", methods=["GET"])
+def download_csv():
+    """Endpoint to download audit results as CSV."""
     if "final" not in audit_results_cache:
-        return jsonify({"error": "No audit data available"}), 400
+        return jsonify({"error": "No audit report found"}), 404
 
-    final_audit_data = audit_results_cache["final"]  # Use the final merged report
+    csv_path = generate_csv_report(audit_results_cache["final"])
+    return send_file(csv_path, as_attachment=True, download_name="audit_report.csv")
 
-    folder_name = "etl_audit"
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  
-    safe_folder_name = folder_name.replace(" ", "_").replace("/", "_")  
+# ✅ PDF Download API
+@etl_upload_bp.route("/download/pdf", methods=["GET"])
+def download_pdf():
+    """Endpoint to download audit results as PDF."""
+    if "final" not in audit_results_cache:
+        return jsonify({"error": "No audit report found"}), 404
 
-    csv_filename = f"{safe_folder_name}_audit_{timestamp}.csv"
-    csv_path = os.path.join(OUTPUT_FOLDER, csv_filename)
-
-    # Generate CSV report
-    generate_csv_report(final_audit_data, csv_path)  
-
-    # 🛠 **Check if the file exists before sending**
-    # if not os.path.exists(csv_path):
-    #     print(f"[ERROR] CSV file was not created: {csv_path}")  
-    #     return jsonify({"error": "Failed to generate report"}), 500
-
-    print(f"[INFO] Sending file: {csv_path}")
-    return send_file(csv_path, as_attachment=True)
+    pdf_path = generate_pdf_report(audit_results_cache["final"])
+    return send_file(pdf_path, as_attachment=True, download_name="audit_report.pdf")
 
