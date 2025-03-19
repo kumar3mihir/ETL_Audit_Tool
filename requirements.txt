@@ -14,3 +14,4 @@ python-pptx
 openai
 gunicorn
 requests
+tenacity
