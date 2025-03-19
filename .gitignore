@@ -42,6 +42,8 @@ extracted_files/
 
 
 
+backend/
+requirements.txt
 
 #new but not implemented
 src/components/ResultPage/LeftSide/
