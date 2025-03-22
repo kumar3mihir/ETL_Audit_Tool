@@ -46,7 +46,7 @@ const EtlAuditPage: React.FC = () => {
       setErrorMessage(null);
 
       console.log("🚀 Uploading file...");
-      const uploadRes = await axios.post("http://127.0.0.1:5000/etl/upload", formData, {
+      const uploadRes = await axios.post("http://192.168.1.2:5000/etl/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -59,7 +59,7 @@ const EtlAuditPage: React.FC = () => {
       setProgress(50); // Midway progress
 
       console.log("🚀 Starting audit...");
-      const auditRes = await axios.post("http://127.0.0.1:5000/etl/audit", {
+      const auditRes = await axios.post("http://192.168.1.2:5000/etl/audit", {
         latest_files: uploadRes.data.latest_files, // ✅ Correct key
         additional_questions: additionalQuestions,
         test_mode: false,
