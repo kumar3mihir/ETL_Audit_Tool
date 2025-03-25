@@ -334,6 +334,150 @@ client = OpenAI(
 
 
 
+
+# prompt = f"""
+# You are an *Expert Code & Schema Reviewer* for the Automobile Industry, specializing in *Data Governance, Schema Validation, and Code Audits*.  
+# Your task is to analyze the given code content and validate it against the dynamically provided checklist.
+
+# ---
+
+# ### *Validation Logic Based on Checklist Type:*  
+# - *If the checklist relates to input data validation*, check for:  
+#   - Required attribute checks, length constraints, format checks, reference data validation, range constraints, data type enforcement, uniqueness constraints.  
+#   - *Return output strictly based on the given code*, using this format:  
+#     {{
+#         "Audit Details": [
+#             {{ "<column_name_1>": "Validation exists (required attribute, length check, format check, reference data check, range check, DataType check, List of values check, Uniqueness check)", "Audit Result": "Pass", "Audit Reason": "Validation applied correctly" }},
+#             {{ "<column_name_2>": "No validation exists", "Audit Result": "Fail", "Audit Reason": "Missing validation" }},
+#             {{ "<column_name_3>": "Validation exists (required attribute, reference data check, DataType check)", "Audit Result": "Pass", "Audit Reason": "Partial validation exists" }},
+#             {{ "<column_name_4>": "No validation exists", "Audit Result": "Fail", "Audit Reason": "Missing validation" }},
+#             {{ "<column_name_5>": "No validation exists", "Audit Result": "Fail", "Audit Reason": "Missing validation" }}
+#         ]
+#     }}
+#     - *If the code does not contain input-related data handling, return:*  
+#     {{
+#         "Audit Details": [
+#             {{"AuditNotneeded": "Code does not have input data entry", "Audit Result": "Pass", "Audit Reason": "No input validation needed" }}
+#         ]
+#     }}
+
+# ---
+
+# - *If the checklist relates to database constraints, integrity checks, or validation rules*, check for:  
+#   - *Primary keys (PRIMARY KEY)*  
+#   - *Foreign keys (FOREIGN KEY)*  
+#   - *Unique constraints (UNIQUE)*  
+#   - *Not null constraints (NOT NULL)*  
+#   - *Check constraints (CHECK)*  
+#   - *Default values (DEFAULT)*  
+#   - *Extract and evaluate constraints strictly from the given code, do not generate example responses.*  
+#   - *Return only actual findings from the provided code* in this format:  
+#     [
+#         {{
+#             "Audit Details": [
+#                 "1. <column_name> - PRIMARY KEY - Pass",
+#                 "2. <column_name> - FOREIGN KEY (Expected: Exists) - Fail",
+#                 "3. <column_name> - UNIQUE - Pass",
+#                 "4. <column_name> - NOT NULL - Fail"
+#             ],
+#             "Audit Result": "Fail",
+#             "Audit Reason": "Missing required constraints"
+#         }}
+#     ]
+
+# ---
+
+# - *If the checklist relates to database object names being self-explanatory or user-friendly*, check for:  
+#   - Ensure names are clear, descriptive, and follow best practices.  
+#   - *Strictly extract names from the given code and do not assume or generate example responses.*  
+#   - *Return only actual findings* in this format:  
+#     [
+#         {{
+#             "Audit Details": [
+#                 "1. <actual_column_name> - Pass"
+#             ],
+#             "Audit Result": "Pass",
+#             "Audit Reason": "All names user-friendly"
+#         }},
+#         {{
+#             "Audit Details": [
+#                 "2.<actual_column_name> - Fail"
+#             ],
+#             "Audit Result": "Fail",
+#             "Audit Reason": "Unclear naming"
+#         }}
+#     ]
+
+# ---
+
+# - *If the checklist relates to data types in database schema*, check for:  
+#   - Ensure the correct data types are used based on column names and intended purpose.  
+#   - *Extract actual data types from the code instead of assuming them.*  
+#   - *Return only actual findings* in this format:  
+#     [
+#         {{
+#             "Audit Details": [
+#                 "1. <column_name> - <actual_data_type> - Pass",
+#                 "2. <column_name> - <actual_data_type> - Fail (Expected: <expected_data_type>)"
+#             ],
+#             "Audit Result": "Fail",
+#             "Audit Reason": "Incorrect data type"
+#         }}
+#     ]
+
+# ---
+
+# - *If the checklist relates to audit data placeholders (who and when data was created, modified, or deleted), check for:*  
+#   - Presence of necessary audit columns: CreatedBy, ModifiedBy, CreateDate, ModifiedDate, DeletedBy, DeletedDate.  
+#   - *Return only findings based on the actual code* in this format:  
+#     [
+#         {{
+#             "Audit Details": [
+#                 "1. CreateDate - Missing - Fail",
+#                 "2. CreatedBy - Missing - Fail",
+#                 "3. ModifiedDate - Missing - Fail",
+#                 "4. ModifiedBy - Missing - Fail",
+#                 "5. DeletedDate - Missing - Fail",
+#                 "6. DeletedBy - Missing - Fail"
+#             ],
+#             "Audit Result": "Fail",
+#             "Audit Reason": "Audit columns missing"
+#         }}
+#     ]
+
+# ---
+
+# ### *Checklist for Validation:*  
+# {checklist}
+
+# ### *Code Content:*  
+# {content}  
+
+# ## *File Path:*
+# {file_name}
+
+# ---
+
+# ### *Strict Rules:*  
+# 0. *For all the tasks include only input data entry or query or creation column names alone, don't assume python function or methods names has input data entry and ignore the variable names and user-defined function names*
+# 1. *Extract and analyze only from the given code. Do not generate example outputs.*  
+# 2. *Return only the validation results based on the provided code.*  
+# 3. *Do NOT consider file names,function names (def function_name():) and variable names, or general identifiers or API routes as database objects.*  
+# 4. *Exclude Flask routes, API handlers, and methods from evaluation.*  
+# 5. *Return output ONLY in the required format*—do not add explanations, headings, or extra text.  
+# 6. *Ensure the response does NOT include this prompt example*—only return results for the given Code Content.  
+# 7. *Extract only column names from input data entry or structured data fields.*  
+# 9. *Exclude Flask routes, API handlers, and Python function names from evaluation.*  
+# 10. *Return output ONLY in the required format*—do not add explanations, headings, or extra text.  
+# 11. *Ignore filenames, executable names (.exe), readme file contents, API routes, and metadata.*  
+# 12. *Ensure the response does NOT include this prompt example*—only return results for the given Code Content.  
+# 13. *Keep audit reasoning concise (≤ 8 words).*  
+# 14. *Avoid redundant JSON keywords like 'json' or '```json' in the output.* 
+# """
+
+
+
+# user_input = ["Question":]
 # API Retry Logic: Retries up to 3 times with exponential backoff
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def call_genai_api(prompt):
@@ -353,102 +497,72 @@ def call_genai_api(prompt):
 
 
 
-# improved code with : technical improvement section in evidence column
 # def analyze_etl_script(script_content, additional_questions=None):
 #     """Sends the cleaned script to GenAI for audit analysis and extracts structured JSON output."""
     
 #     print("Entering analyze_etl_script() function...")
 #     print(f"Script Content (first 100 chars): {script_content[:100]}")
 
-#     # Construct the prompt
 #     prompt = f"""
-#     You are an ETL audit expert. Analyze the following ETL script for compliance.
+#     You are an ETL audit expert. Analyze the following ETL script for compliance and based on the checklist user given by prompt:
     
-#     Ignore comments and documentation. Only check executable code.
+#     {additional_questions}
     
+#     ETL Checklist1:"If Question Asked in the additional question is that that check this whole ETL pipeline has multi staging layers or not between source to target data warehouse"
+    
+#     give respone in this format 
+     
+#     Your annswer will be in the form of 
+#     Audit Report for Data Pipeline Design (CSV Format)
+# # Audit Start Date & Time	Audit End Date & Time	File Type	File Name Full Path	Audit Status	Audit Result	Audit Details	Audit Result Reason
+# # 22-03-2025 16:00	22-03-2025 16:05	SQL / Python	C:\ETL\landing_zone.sql	Completed	Pass	1. Landing - Raw data stored without transformation	Data retained successfully
+# # 22-03-2025 16:00	22-03-2025 16:05	SQL / Python	C:\ETL\staging_layer.py	Completed	Pass	2. Staging - Format standardization & de-duplication applied	Cleaning process verified
+# # 22-03-2025 16:00	22-03-2025 16:05	SQL / Python	C:\ETL\integration_layer.sql	Completed	Pass 3. Integration - Matching rules implemented correctly	Entity mapping successful
+# # 22-03-2025 16:00	22-03-2025 16:05	SQL / Python	C:\ETL\transformation.py	Completed	Fail	4. Transformation - Summarization logic incorrect	Incorrect data aggregation
+# # 22-03-2025 16:00	22-03-2025 16:05	SQL / Python	C:\ETL\warehouse_load.sql	Completed	Fail	5. Final Layer - Target schema mismatch	Schema validation failed
+#     I
+    
+    
+    
+    
+#    ETL Checklist2:"If Question Asked in the additional question is that that check this whole ETL pipeline has proper coding standard like Auditability and reconcilability , restatrtability and exception handling etc "
+    
+# # •  ETL Process Compliance Audit Report (for ETL Audit)
+# # Example ETL Audit Report (CSV format)
+# # Audit Start Date & Time	Audit End Date & Time	File Type	File Name Full Path	Audit Status	Audit Result	Audit Details	Audit Result Reason
+# # 22-03-2025 16:00	22-03-2025 16:05	Python	C:\ETL\transform.py	Completed	Pass	1. Auditability - Start/End timestamps logged	Log entries found
+# # 22-03-2025 16:00	22-03-2025 16:05	Python	C:\ETL\transform.py	Completed	Pass	2. Reconcilability - Row counts match source & target	Data validation passed
+# # 22-03-2025 16:00	22-03-2025 16:05	Python	C:\ETL\transform.py	Completed	Fail	3. Restartability - No checkpoint mechanism found	Restart logic missing
+# # 22-03-2025 16:00	22-03-2025 16:05	Python	C:\ETL\transform.py	Completed	Fail	4. Exception Handling - Missing try-except block for critical operation	Error handling missing
+#     {File_Name}:
 #     {script_content}
-
-#     **Check for compliance on the following aspects:**
-#     1. **Auditability** (Start/End timestamps, row counts, logs)
-#     2. **Reconcilability** (Data movement checks, transformations)
-#     3. **Restartability** (Resumes from failure?)
-#     4. **Exception Handling** (Errors, alerts)
-#     5. **Script Contains Only Comments/Readme?** [YES/NO]
-#     6. **Follows Best Practices?** [YES/NO]
-
-#     **For each category, return structured JSON with:**
-#     - **result** → (YES, NO, PARTIAL)
-#     - **evidence** → Provide a **detailed and technical** justification with:
-#       - **General Evidence:** Observations from the script.
-#       - **Technical Improvements:** List what needs improvement.
-
-#     **Ensure structured JSON format like this:**
-#     ```structured-results
-#     {{
-#       "Auditability": {{
-#         "result": "YES/NO/PARTIAL",
-#         "evidence": {{
-#           "General Evidence": "Detailed analysis...",
-#           "Technical Improvements": "List of improvements..."
-#         }}
-#       }},
-#       "Reconcilability": {{
-#         "result": "YES/NO/PARTIAL",
-#         "evidence": {{
-#           "General Evidence": "Detailed analysis...",
-#           "Technical Improvements": "List of improvements..."
-#         }}
-#       }},
-#       "Restartability": {{
-#         "result": "YES/NO/PARTIAL",
-#         "evidence": {{
-#           "General Evidence": "Detailed analysis...",
-#           "Technical Improvements": "List of improvements..."
-#         }}
-#       }},
-#       "Exception Handling": {{
-#         "result": "YES/NO/PARTIAL",
-#         "evidence": {{
-#           "General Evidence": "Detailed analysis...",
-#           "Technical Improvements": "List of improvements..."
-#         }}
-#       }},
-#       "Script Contains Only Comments/Readme": {{
-#         "result": "YES/NO",
-#         "evidence": {{
-#           "General Evidence": "Explain why it is only comments or not.",
-#           "Technical Improvements": "N/A"
-#         }}
-#       }},
-#       "Follows Best Practices": {{
-#         "result": "YES/NO/PARTIAL",
-#         "evidence": {{
-#           "General Evidence": "Detailed analysis...",
-#           "Technical Improvements": "Refactoring, modularization suggestions..."
-#         }}
-#       }}
-#     }}
-#     ```
     
-#     If additional questions were asked, format them as follows:
+#     """
+
+#     # If additional questions are provided, add them
+#     if additional_questions:
+#         prompt += f"\n\nAdditionally, answer the following questions:\n{additional_questions}"
+
+#     # Enforce structured JSON format
+#     prompt += """
+    
+#     **Provide structured JSON output at the end in this format and in evidence section add all that have given in the response i.e, all the technical terms and area of improvement:**
+#     'so i am using the below to extract output so be serious about generating this output'
+#     structured_match = re.search(r"```structured-results\n({.*?})\n```", audit_report, re.DOTALL)
+
 #     ```structured-results
-#     {{
-#       "Additional Questions": {{
-#         "Your question here": {{
-#           "result": "YES/NO",
-#           "evidence": {{
-#             "General Evidence": "Detailed answer...",
-#             "Technical Improvements": "Actionable recommendations..."
-#           }}
-#         }}
-#       }}
-#     }}
+#     {
+     
+#     }
+    
+#          } 
+#     }
 #     ```
-#     **DO NOT** include any extra text outside the JSON.
+#     **DO NOT** include any extra text outside of the JSON output.
 #     """
 
 #     print("Generated Prompt:")
-#     print(prompt[:300])  # Debugging - Print first 300 characters
+#     print(prompt[:300])  # Print only the first 300 characters for debugging
 
 #     try:
 #         completion = call_genai_api(prompt)  # Call API with retry logic
@@ -456,10 +570,13 @@ def call_genai_api(prompt):
 
 #         audit_report = ""
 #         for chunk in completion:
-#             if hasattr(chunk, "choices") and chunk.choices:
-#                 if hasattr(chunk.choices[0], "delta") and hasattr(chunk.choices[0].delta, "content"):
-#                     print(chunk.choices[0].delta.content, end="")
-#                     audit_report += chunk.choices[0].delta.content
+#             # if chunk["choices"][0]["delta"].get("content") is not None:
+#             #     print(chunk["choices"][0]["delta"]["content"], end="")
+#             #     audit_report += chunk["choices"][0]["delta"]["content"]
+#             if chunk.choices[0].delta.content is not None:
+#               print(chunk.choices[0].delta.content, end="")
+#               audit_report += chunk.choices[0].delta.content
+                
 
 #         # Extract structured JSON using regex
 #         structured_match = re.search(r"```structured-results\n({.*?})\n```", audit_report, re.DOTALL)
@@ -481,160 +598,225 @@ def call_genai_api(prompt):
 #         return {"error": str(e) + "\n\nPlease check the input and try again."}
 
 
-# New Modified code -- additional question and json output also added
-def analyze_etl_script(script_content, additional_questions=None):
+
+import re
+import json
+
+# def analyze_etl_script(script_content, file_name, additional_questions=None):
+#     """Analyzes an ETL script for compliance and extracts structured audit results in JSON format."""
+    
+#     print("Entering analyze_etl_script() function...")
+#     print(f"Analyzing File: {file_name}")
+    
+#     prompt = f"""
+#     You are an ETL audit expert. Analyze the given ETL script and assess its compliance based on best practices.
+    
+#     **Checklist for ETL Compliance:**
+#     1️⃣ Multi-Staging Layers: Check if the pipeline follows a structured data flow.
+#     2️⃣ Coding Standards: Ensure auditability, reconcilability, restartability, and exception handling.
+
+#     **Audit Report Format:**
+#     - Audit Start Date & Time: When analysis begins
+#     - Audit End Date & Time: When analysis ends
+#     - File Type: SQL / Python
+#     - File Name Full Path: {file_name}
+#     - Audit Status: Completed / Failed
+#     - Audit Result: Pass / Partial / Fail
+#     - Audit Details: What was checked
+#     - Audit Result Reason: Why it passed or failed
+
+#     **Example Output (JSON Format):**
+#     ```structured-results
+#     {{
+#         "file_name": "{file_name}",
+#         "audit_details": [
+#             {{
+#                 "audit_detail": "Landing Zone - Raw data stored without transformation",
+#                 "audit_result": "Pass",
+#                 "audit_reason": "Data retained successfully"
+#             }},
+#             {{
+#                 "audit_detail": "Transformation - Summarization logic incorrect",
+#                 "audit_result": "Fail",
+#                 "audit_reason": "Incorrect data aggregation"
+#             }}
+#         ]
+#     }}
+#     ```
+
+#     **DO NOT** add extra text before or after the JSON output.
+
+#     **ETL Script Content:**  
+#     {script_content}
+#     """
+
+#     # If additional questions are provided, add them
+#     if additional_questions:
+#         prompt += f"\n\nAdditionally, answer the following questions:\n{additional_questions}"
+
+#     print("Generated Prompt:")
+#     print(prompt[:300])  # Print only the first 300 characters for debugging
+
+#     try:
+#         completion = call_genai_api(prompt)  # Call AI model (Hugging Face, OpenRouter, etc.)
+#         print("Received response from GenAI model.")
+
+#         audit_report = ""
+#         for chunk in completion:
+#             if chunk.choices[0].delta.content is not None:
+#                 print(chunk.choices[0].delta.content, end="")
+#                 audit_report += chunk.choices[0].delta.content
+
+#         # Extract structured JSON using regex
+#         structured_match = re.search(r"```structured-results\n({.*?})\n```", audit_report, re.DOTALL)
+
+#         if structured_match:
+#             structured_json_str = structured_match.group(1)
+#             try:
+#                 structured_results = json.loads(structured_json_str)
+#                 return structured_results  # Return properly formatted JSON
+#             except json.JSONDecodeError:
+#                 print("[ERROR] Failed to parse structured JSON.")
+#                 return {"error": "Failed to parse structured JSON."}
+
+#         print("[WARNING] No structured JSON found! Returning full text instead.")
+#         return {"error": "AI did not return structured JSON", "raw_text": audit_report}
+
+#     except Exception as e:
+#         print("ERROR OCCURRED in analyze_etl_script:", str(e))
+#         return {"error": str(e) + "\n\nPlease check the input and try again."}
+
+def format_audit_results(reports):
+    """Formats the audit results to match the required CSV format."""
+    
+    formatted_report = []
+
+    for report in reports:
+        if "file_name" in report and "audit_results" in report:
+            file_name = report["file_name"]
+            for audit_entry in report["audit_results"]:
+                formatted_report.append({
+                    "File Name": file_name,
+                    "Audit Detail": audit_entry.get("Audit Detail", ""),
+                    "Audit Result Reason": audit_entry.get("Audit Result Reason", ""),
+                    "Audit Status": audit_entry.get("Audit Status", ""),
+                })
+
+    return formatted_report
+
+
+import re
+import json
+
+def analyze_etl_script(file_name, script_content, additional_questions=None):
     """Sends the cleaned script to GenAI for audit analysis and extracts structured JSON output."""
-    
-    print("Entering analyze_etl_script() function...")
-    print(f"Script Content (first 100 chars): {script_content[:100]}")
 
+    print(f"📌 [INFO] Analyzing file: {file_name}")
+
+    # Prompt preparation
     prompt = f"""
-    You are an ETL audit expert. Analyze the following ETL script for compliance.
-    
-    Ignore comments and documentation. Only check executable code.
-    
-    {script_content}
-    **Check for compliance on the following aspects:**
-    1. **Auditability** (Start/End timestamps, row counts, logs)
-    2. **Reconcilability** (Data movement checks, transformations)
-    3. **Restartability** (Resumes from failure?)
-    4. **Exception Handling** (Errors, alerts)
-    5. **Script Contains Only Comments/Readme?** [YES/NO]
-    6. **Follows Best Practices?** [YES/NO]
+    You are an ETL audit expert. Analyze the following ETL script for compliance based on the checklist:
 
-    **For each category, return structured JSON with:**
-    - **result** → (YES, NO, PARTIAL)
-    - **evidence** → Provide a **detailed and technical** justification with:
-      - Observations from the script.
-      - Technical improvements needed.
-      - Specific lines or code patterns that should be improved.
-    """
+    {additional_questions}
 
-    # If additional questions are provided, add them
-    if additional_questions:
-        prompt += f"\n\nAdditionally, answer the following questions:\n{additional_questions}"
+    **File Name:** {file_name}
 
-    # Enforce structured JSON format
-    prompt += """
-    
-    **Provide structured JSON output at the end in this format and in evidence section add all that have given in the response i.e, all the technical terms and area of improvement:**
-    'so i am using the below to extract output so be serious about generating this output'
-    structured_match = re.search(r"```structured-results\n({.*?})\n```", audit_report, re.DOTALL)
-
-    ```structured-results
-    {
-      "Auditability": {"result": "YES/NO", "evidence": {
-      "Detailed Analysis": "Explain in detail how auditability is implemented.",
-      "Technical Improvements": "**Key improvements needed for better compliance.**"
-    }},
-      "Reconcilability": {"result": "YES/NO", "evidence":{
-      "Detailed Analysis": "Explain in detail how reconciliation is being handled.",
-      "Technical Improvements": "**List improvements needed for better accuracy.**"
-    }},
-      "Restartability": {"result": "YES/NO", "evidence": {
-      "Detailed Analysis": "Explain in detail how the script resumes from failure.",
-      "Technical Improvements": "**Suggest ways to make restartability more robust.**"
-    }},
-      "Exception Handling": {"result": "PARTIAL/YES/NO", "evidence": {
-      "Detailed Analysis": "Explain how errors and exceptions are managed.",
-      "Technical Improvements": "**Suggest improvements for better error handling.**"
-    }},
-      "Script Contains Only Comments/Readme": {"result": "YES/NO", "evidence": "Reasoning..."},
-      "Follows Best Practices": {"result": "YES/NO", "evidence":  {
-      "Detailed Analysis": "Explain in detail if best practices are followed.",
-      "Technical Improvements": "**Recommend coding best practices that should be applied.**"
-    }}
-    }
+    **Script Content:**
     ```
-    
-     **If additional questions were asked, format them as follows (otherwise, do not include this section):**
+    {script_content}
+    ```
+
+    **Provide structured JSON output in this format:**
     ```structured-results
-    {
-      ...
-     "Additional Questions":{
-         "Your question here": {"result": "YES/NO", "evidence": {
-      "Detailed Analysis": "Explain in detail the answer to the question.",
-      "Technical Improvements": "**Recommend what improvement can be done based on cooncept the question is asked**"
-    }},
-         } 
-    }
+    {{
+        "file_name": "{file_name}",
+        "audit_results": [
+            {{
+                "Audit Detail": "Auditability - Start/End timestamps logged",
+                "Audit Result Reason": "Log entries found",
+                "Audit Status": "Pass"
+            }},
+            {{
+                "Audit Detail": "Exception Handling - Missing try-except block",
+                "Audit Result Reason": "Error handling missing",
+                "Audit Status": "Fail"
+            }}
+        ]
+    }}
     ```
     **DO NOT** include any extra text outside of the JSON output.
     """
 
-    print("Generated Prompt:")
-    print(prompt[:300])  # Print only the first 300 characters for debugging
-
     try:
-        completion = call_genai_api(prompt)  # Call API with retry logic
-        print("Received response from GenAI model.")
+        print("🚀 [INFO] Sending request to GenAI API...")
+        completion = call_genai_api(prompt)  # Your function to call the API
 
+        print("📡 [INFO] Receiving streamed response from GenAI:")
         audit_report = ""
+
+        # Streaming handling
         for chunk in completion:
-            # if chunk["choices"][0]["delta"].get("content") is not None:
-            #     print(chunk["choices"][0]["delta"]["content"], end="")
-            #     audit_report += chunk["choices"][0]["delta"]["content"]
-            if chunk.choices[0].delta.content is not None:
-              print(chunk.choices[0].delta.content, end="")
-              audit_report += chunk.choices[0].delta.content
-                
+            chunk_text = chunk.choices[0].delta.content
+            if chunk_text:
+                print(f"🔹{chunk_text}")  # Debugging each streamed token
+                audit_report += chunk_text
 
-        # Extract structured JSON using regex
+        print("✅ [INFO] Received full response from GenAI.")
+
+        # Extract structured JSON
         structured_match = re.search(r"```structured-results\n({.*?})\n```", audit_report, re.DOTALL)
-
+        
         if structured_match:
             structured_json_str = structured_match.group(1)
+            print(f"📑 [DEBUG] Extracted JSON String:\n{structured_json_str}")
+
             try:
                 structured_results = json.loads(structured_json_str)
-                return structured_results  # Return structured JSON
-            except json.JSONDecodeError:
-                print("[ERROR] Failed to parse structured JSON.")
-                return {"error": "Failed to parse structured JSON."}
+                print("✅ [INFO] Successfully parsed structured JSON.")
+                return structured_results
+            except json.JSONDecodeError as e:
+                print(f"❌ [ERROR] Failed to parse structured JSON: {e}")
+                return {"error": "Failed to parse structured JSON.", "raw_text": audit_report}
 
-        print("[WARNING] No structured JSON found! Returning full text instead.")
+        print("⚠️ [WARNING] AI did not return structured JSON.")
         return {"error": "AI did not return structured JSON", "raw_text": audit_report}
 
     except Exception as e:
-        print("ERROR OCCURRED in analyze_etl_script:", str(e))
-        return {"error": str(e) + "\n\nPlease check the input and try again."}
-
-
+        print(f"❌ [ERROR] API call failed: {str(e)}")
+        return {"error": str(e)}
 
 
 
 
 @etl_upload_bp.route("/upload", methods=["POST"])
 def upload_file():
-    """Handles file upload and extracts ZIP contents recursively."""
+    """Handles file upload and processes ZIP contents if necessary."""
     
     file = request.files.get("file")
     if not file:
         return jsonify({"error": "No file provided"}), 400
 
     file_ext = file.filename.split(".")[-1].lower()
-    unique_folder = os.path.join(UPLOAD_FOLDER, str(uuid.uuid4()))
-    os.makedirs(unique_folder, exist_ok=True)
-
-    file_path = os.path.join(unique_folder, file.filename)
-    file.save(file_path)  # Save uploaded file
-
-    extracted_files = []
+    extracted_files = {}
 
     if file_ext == "zip":
-        with zipfile.ZipFile(file_path, "r") as zip_ref:
-            zip_ref.extractall(unique_folder)
+        with zipfile.ZipFile(file, "r") as zip_ref:
+            for zip_info in zip_ref.infolist():
+                if not zip_info.is_dir():  # Ignore directories
+                    with zip_ref.open(zip_info.filename) as extracted_file:
+                        extracted_files[zip_info.filename] = extracted_file.read().decode(errors="ignore")
         
-        extracted_files = traverse_directory(unique_folder)
-
         if not extracted_files:
             return jsonify({"error": "ZIP extracted but contains no valid files"}), 400
     else:
-        extracted_files = [file_path]
+        extracted_files[file.filename] = file.read().decode(errors="ignore")
 
     return jsonify({
         "message": "Files processed successfully.",
-        "latest_files": extracted_files
+        "latest_files": extracted_files  # Dictionary of {filename: content}
     }), 200
+
+
 
 
 
@@ -644,113 +826,42 @@ audit_results_cache = {}
 @etl_upload_bp.route("/audit", methods=["POST"])
 def audit_etl():
     """Handles ETL audit for uploaded files and returns structured JSON output."""
+    
     data = request.json
-    latest_files = data.get("latest_files", [])
-    test_mode = data.get("test_mode", False)
-    additional_questions = data.get("additional_questions", None)  
+    print("🔥 Incoming JSON Data:", data)  # DEBUG PRINT
+
+    latest_files = data.get("latest_files", {})  # Expecting a dictionary {filename: content}
+    additional_questions = data.get("additional_questions", None)
 
     if not latest_files:
-        print("[ERROR] No files provided for audit.")
-        return jsonify({"error": "No files provided for audit"}), 400
+        print("🚨 [ERROR] No files received!")
+        return jsonify({"error": "No file provided"}), 400
 
-    combined_script_content = ""
-    
-    for file_path in latest_files:
-        if not os.path.exists(file_path):
-            print(f"[WARNING] Skipping missing file: {file_path}")
-            continue
-
-        script_content = read_file_content(file_path)
-
-        if script_content:
-            combined_script_content += f"\n### File: {file_path} ###\n{script_content}\n"
-
-    if not combined_script_content.strip():
-        print("[ERROR] No valid files to process.")
-        return jsonify({"error": "No valid files to process"}), 400
-
-    # Split script if too large
-    script_chunks = split_large_script(combined_script_content)
-
-    # If test mode is enabled, return a small chunk to check API response
-    if test_mode:
-        test_prompt = f"Test this script for ETL compliance:\n\n{script_chunks[0]}"
-        return jsonify({"test_prompt": test_prompt}), 200
+    print(f"✅ Received {len(latest_files)} file(s): {list(latest_files.keys())}")  # DEBUG PRINT
 
     full_report = []
     
-    # Analyze each script chunk
-    for chunk in script_chunks:
-        audit_result = analyze_etl_script(chunk, additional_questions)
-        
-        if "error" in audit_result:
-            print("[ERROR] API call failed:", audit_result["error"])
-            return jsonify({"error": "Failed to analyze script"}), 500
-        
-        full_report.append(audit_result)  # Append structured JSON
+    for file_name, script_content in latest_files.items():
+        if not script_content.strip():
+            print(f"[WARNING] Skipping empty file: {file_name}")
+            continue
 
-    # Initialize structured report format
-    final_report = {
-        "Auditability": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
-        "Reconcilability": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
-        "Restartability": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
-        "Exception Handling": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
-        "Script Contains Only Comments/Readme": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
-        "Follows Best Practices": {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}},
-        "Additional Questions": {}  
-    }
+        print(f"Processing {file_name} (Characters: {len(script_content)})")  # DEBUG PRINT
+        script_chunks = split_large_script(script_content)
 
-    # Merge results from all script chunks
-    for report in full_report:
-        for key, value in report.items():
-            if key == "Additional Questions":
-                for question, details in value.items():
-                    if question not in final_report[key]:  
-                        final_report[key][question] = {"result": [], "evidence": {"Detailed Analysis": "", "Technical Improvements": ""}}
+        for chunk in script_chunks:
+            audit_result = analyze_etl_script(file_name, chunk, additional_questions)
+            if "error" in audit_result:
+                print("[ERROR] API call failed:", audit_result["error"])
+                return jsonify({"error": "Failed to analyze script"}), 500
 
-                    # Append result
-                    if isinstance(details.get("result"), list):
-                        final_report[key][question]["result"].extend(details["result"])
-                    elif isinstance(details.get("result"), str):
-                        final_report[key][question]["result"].append(details["result"])
+            full_report.append(audit_result)
 
-                    # Append evidence, ensuring structured format
-                    if isinstance(details.get("evidence"), dict):
-                        final_report[key][question]["evidence"]["Detailed Analysis"] += (
-                            f"\n{details['evidence'].get('Detailed Analysis', '')}".strip()
-                        )
-                        final_report[key][question]["evidence"]["Technical Improvements"] += (
-                            f"\n{details['evidence'].get('Technical Improvements', '')}".strip()
-                        )
-                    elif isinstance(details.get("evidence"), str):
-                        final_report[key][question]["evidence"]["Detailed Analysis"] += f"\n{details['evidence']}"
+    structured_report = format_audit_results(full_report)
+    print("✅ Final Report:", structured_report)  # DEBUG PRINT
 
-            elif key in final_report:
-                # Append result
-                if isinstance(value.get("result"), list):
-                    final_report[key]["result"].extend(value["result"])
-                elif isinstance(value.get("result"), str):
-                    final_report[key]["result"].append(value["result"])
+    return jsonify({"structured_audit_report": structured_report}), 200
 
-                # Append evidence, ensuring structured format
-                if isinstance(value.get("evidence"), dict):
-                    final_report[key]["evidence"]["Detailed Analysis"] += (
-                        f"\n{value['evidence'].get('Detailed Analysis', '')}".strip()
-                    )
-                    final_report[key]["evidence"]["Technical Improvements"] += (
-                        f"\n{value['evidence'].get('Technical Improvements', '')}".strip()
-                    )
-                elif isinstance(value.get("evidence"), str):
-                    final_report[key]["evidence"]["Detailed Analysis"] += f"\n{value['evidence']}"
-            else:
-                print(f"⚠️ Warning: Unexpected key '{key}' in report.")
-
-    # Store final results
-    audit_results_cache["final"] = final_report  
-    print("✅ Final Report:", final_report)
-
-    # Return properly formatted JSON response
-    return jsonify({"structured_audit_report": final_report}), 200
 
 # audit_results_cache = {}
 # @etl_upload_bp.route("/audit", methods=["POST"])
