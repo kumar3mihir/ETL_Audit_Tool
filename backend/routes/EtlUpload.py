@@ -327,7 +327,7 @@ def split_large_script(script, chunk_size=50000):
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     # api_key=os.getenv("apikey_nvidia")
-   api_key="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"
+   api_key="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"
 )
 
 
