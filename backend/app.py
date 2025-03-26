@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/..')
 from flask import Flask, jsonify
 from flask_cors import CORS, cross_origin
 from backend.routes.EtlUpload import etl_upload_bp  # Use absolute import
+from routes.Extract_metadata.mongo_extract import mongo_extract_bp
 
 
 
@@ -18,6 +19,8 @@ def create_app():
         "allow_headers": "*",
         "supports_credentials": True
     }})
+    
+    app.register_blueprint(mongo_extract_bp)
 
     # Register blueprint
     app.register_blueprint(etl_upload_bp, url_prefix="/etl")
